@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useSearchParams } from 'react-router-dom'
 
 function VerificarCarnet() {
   const [cedula, setCedula] = useState('')
@@ -7,8 +8,13 @@ function VerificarCarnet() {
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
 
+  // Leer cédula de la URL
+  const [searchParams] = useSearchParams()
+  const cedulaParam = searchParams.get('cedula')
+
+  // Función principal de búsqueda
   const buscarJugador = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!cedula.trim()) return
 
     setBuscando(true)
@@ -80,6 +86,18 @@ function VerificarCarnet() {
     setBuscando(false)
   }
 
+  // EFECTO: Auto-buscar si viene la cédula en la URL
+  useEffect(() => {
+    if (cedulaParam) {
+      setCedula(cedulaParam)
+      // Pequeño delay para asegurar que el estado se actualice
+      setTimeout(() => {
+        buscarJugador()
+      }, 100)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cedulaParam])
+
   const limpiar = () => {
     setCedula('')
     setResultado(null)
@@ -141,7 +159,6 @@ function VerificarCarnet() {
       {/* Resultado */}
       {resultado && (
         <>
-          {/* Datos del jugador */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-2xl font-bold text-liga-azul mb-4">
               {resultado.jugador.apellidos} {resultado.jugador.nombres}
@@ -174,7 +191,6 @@ function VerificarCarnet() {
             </div>
           </div>
 
-          {/* Validación por equipo */}
           <h3 className="text-xl font-bold text-liga-azul mb-3">
             Estado por equipo:
           </h3>
@@ -200,7 +216,6 @@ function VerificarCarnet() {
                       : 'bg-red-50 border-red-500'
                   }`}
                 >
-                  {/* Header con el estado */}
                   <div className="p-4 flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-3">
                       <span className="text-3xl">
@@ -225,7 +240,6 @@ function VerificarCarnet() {
                     </span>
                   </div>
 
-                  {/* Lista de motivos */}
                   {!habilitado && v.validacion.motivos && v.validacion.motivos.length > 0 && (
                     <div className="px-4 pb-4">
                       <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -245,7 +259,6 @@ function VerificarCarnet() {
                     </div>
                   )}
 
-                  {/* Mensaje cuando está habilitado */}
                   {habilitado && (
                     <div className="px-4 pb-4">
                       <p className="text-sm text-green-700 bg-white/60 rounded p-3">
@@ -260,7 +273,6 @@ function VerificarCarnet() {
         </>
       )}
 
-      {/* Ayuda */}
       {!resultado && !error && (
         <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg shadow p-4">
           <p className="text-sm text-blue-800">
