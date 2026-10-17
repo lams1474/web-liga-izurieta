@@ -12,10 +12,13 @@ function VerificarCarnet() {
   const [searchParams] = useSearchParams()
   const cedulaParam = searchParams.get('cedula')
 
-  // Función principal de búsqueda
-  const buscarJugador = async (e) => {
+  // Función principal de búsqueda (acepta cédula opcional para el QR)
+  const buscarJugador = async (e, cedulaParaBuscar) => {
     if (e) e.preventDefault()
-    if (!cedula.trim()) return
+    
+    // Usar la cédula del parámetro o la del estado
+    const cedulaFinal = cedulaParaBuscar || cedula
+    if (!cedulaFinal.trim()) return
 
     setBuscando(true)
     setError(null)
@@ -25,7 +28,7 @@ function VerificarCarnet() {
     const { data: jugador, error: errJugador } = await supabase
       .from('jugadores')
       .select('id, nombres, apellidos, cedula, foto_url, es_menor, carnet_pagado, carnet_ano')
-      .eq('cedula', cedula.trim())
+      .eq('cedula', cedulaFinal.trim())
       .maybeSingle()
 
     if (errJugador) {
@@ -90,10 +93,8 @@ function VerificarCarnet() {
   useEffect(() => {
     if (cedulaParam) {
       setCedula(cedulaParam)
-      // Pequeño delay para asegurar que el estado se actualice
-      setTimeout(() => {
-        buscarJugador()
-      }, 100)
+      // Pasamos la cédula directamente para evitar fallos de sincronización
+      buscarJugador(null, cedulaParam)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cedulaParam])
